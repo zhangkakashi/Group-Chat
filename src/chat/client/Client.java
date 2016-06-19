@@ -8,6 +8,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class Client extends Frame {
 
@@ -15,7 +19,8 @@ public class Client extends Frame {
 	/**
 	 * @param args
 	 */
-
+	Socket  s = null;
+	DataOutputStream dos = null;
 	TextField tf = new TextField();
 	TextArea ta = new TextArea();
 
@@ -33,14 +38,41 @@ public class Client extends Frame {
 
 			@Override
 			public void windowClosing(WindowEvent e) {
+				disconnection();
 				System.exit(0);
 			}
 
 		});
 		tf.addActionListener(new TextFieldListerner());
 		this.setVisible(true);
+		connection();
 	}
-
+	
+	private void connection(){
+		try {
+			s = new Socket("localhost", 9999);
+			dos = new DataOutputStream(s.getOutputStream());
+			System.out.println("connected");
+			ta.setText("Connected!\n");
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	private void disconnection(){
+		try {
+			dos.close();
+			s.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	private class TextFieldListerner implements ActionListener {
 
 		@Override
@@ -48,6 +80,15 @@ public class Client extends Frame {
 			String content = tf.getText().trim();
 			ta.setText(ta.getText() + content + "\n");
 			tf.setText("");
+			try {
+				 
+				dos.writeUTF(content);
+				dos.flush();
+				//dos.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 	}
 }
